@@ -1,56 +1,40 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { Film, Map } from "lucide-react";
+
+import React from 'react';
+import WarButton from '@/components/WarButton';
+import WarBackground from '@/components/WarBackground';
 
 const Index = () => {
   return (
-    <div className="page-container relative flex flex-col items-center justify-center">
-      <div className="absolute inset-0 bg-black/20 z-0"></div>
-      
-      <div className="z-10 w-full max-w-4xl mx-auto flex flex-col items-center">
-        <h1 className="title-text mb-12">
-          WARPATH <br />
-          <span className="text-war-red animate-pulse inline-block">BATTLEGROUNDS</span>
-        </h1>
+    <WarBackground>
+      <div className="min-h-screen flex flex-col items-center justify-center p-6">
+        <div className="text-center mb-16 animate-fade-in">
+          <h1 className="war-header">WARBORN</h1>
+          <p className="text-war-gray text-xl mt-2">BATTLEGROUNDS PORTAL</p>
+        </div>
         
-        <div className="flex flex-col md:flex-row gap-8 w-full max-w-xl mx-auto">
-          <Link 
-            to="/media" 
-            className="war-button flex-1 group"
-          >
-            <div className="absolute -inset-0.5 bg-war-red/20 rounded-sm blur opacity-30 group-hover:opacity-100 transition duration-500"></div>
-            <div className="relative flex items-center justify-center gap-3">
-              <Film className="w-6 h-6" />
-              <span>MEDIA</span>
-            </div>
-          </Link>
+        <div className="w-full max-w-md grid grid-cols-1 gap-8 mt-6">
+          <div className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
+            <WarButton 
+              to="/media"
+              variant="media"
+              className="w-full animate-pulse-glow"
+            >
+              Media Archives
+            </WarButton>
+          </div>
           
-          <Link 
-            to="/maps" 
-            className="war-button flex-1 group"
-          >
-            <div className="absolute -inset-0.5 bg-war-red/20 rounded-sm blur opacity-30 group-hover:opacity-100 transition duration-500"></div>
-            <div className="relative flex items-center justify-center gap-3">
-              <Map className="w-6 h-6" />
-              <span>MAPS</span>
-            </div>
-          </Link>
-        </div>
-        
-        <div className="border-pattern mt-16 p-6 max-w-2xl w-full">
-          <h2 className="text-xl uppercase font-bold mb-2 text-war-red">MISSION BRIEFING</h2>
-          <p className="text-muted-foreground">
-            Welcome to Warpath Battlegrounds, commander. Select your operation below.
-            Access tactical intelligence through our Media center or navigate strategic territories
-            in the Maps section.
-          </p>
+          <div className="animate-fade-in" style={{ animationDelay: "0.4s" }}>
+            <WarButton 
+              to="/maps" 
+              variant="maps"
+              className="w-full"
+            >
+              Battleground Maps
+            </WarButton>
+          </div>
         </div>
       </div>
-      
-      <div className="absolute bottom-4 left-4 text-xs text-muted-foreground">
-        CLASSIFIED // LEVEL 5 CLEARANCE REQUIRED
-      </div>
-    </div>
+    </WarBackground>
   );
 };
 
