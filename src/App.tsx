@@ -8,6 +8,8 @@ import { Suspense, lazy } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoadingOverlay from "./components/LoadingOverlay";
+import 'react-h5-audio-player/lib/styles.css';
+
 
 // Lazy load page components
 const Media = lazy(() => import("./pages/Media"));
