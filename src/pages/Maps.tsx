@@ -1,9 +1,10 @@
 import React from 'react';
+import { Image } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import WarBackground from '@/components/WarBackground';
 import { Item, User } from '@/types/type';
 import { availableItems } from '@/data/items';
-import { set } from 'date-fns';
+import { motion, useAnimationControls } from "motion/react"
 
 const Maps = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -19,6 +20,9 @@ const Maps = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);
   
+  const controls = useAnimationControls();
+  const [isAnimating, setIsAnimating] = useState(false);
+
   useEffect(() => {
     console.log('getting user');
     const user = localStorage.getItem('user');
@@ -79,6 +83,7 @@ const Maps = () => {
   const handleClick = (isBom: boolean) => {
     if(isBom) {
       setPoints(0);
+      handleTrigger();
       return;
     }
 
@@ -101,6 +106,7 @@ const Maps = () => {
       }, 1000);
       setTimeout(() => {
         upDateBom();
+        setWinState(false);
       }, 2000);
     }
   }
@@ -119,10 +125,34 @@ const Maps = () => {
     setUser(null);
   }
 
+
+  const handleTrigger = async () => {
+    if (isAnimating) return; // Prevent multiple triggers during animation
+    setIsAnimating(true);
+
+    await controls.start({
+      scale: 1.2,
+      opacity: 1,
+      transition: { duration: 0.2 },
+    });
+    
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    await controls.start({
+      scale: 1, // Return to original size
+      opacity: 0, // Hide the image
+      transition: { duration: 0.1 }, // Quick fade out
+    });
+
+    setIsAnimating(false);
+  };
+
   return (
     <WarBackground>
       <div className="h-screen flex flex-col md:flex-row items-center justify-center align-center">
-        <button className='absolute top-5 right-10 text-xl py-2 px-3 bg-slate-600 rounded-sm hover:bg-slate-500 active:bg-slate-400' onClick={ResetPlay}>Restart</button>
+        <button className='absolute top-5 right-10 text-xl py-2 px-3 z-10 bg-slate-600 rounded-sm hover:bg-slate-500 active:bg-slate-400' onClick={ResetPlay}>
+          Restart
+        </button>
 
         <div className='hidden md:flex flex-col justify-items-start items-center h-screen w-[100%] pt-12'>
           <div className='text-4xl font-bold text-gray-700 w-full text-center p-2 pb-5'>
@@ -183,7 +213,18 @@ const Maps = () => {
           </div>
         </div>
 
-        <div className='flex flex-col md:justify-center justify-start items-center h-full w-full'>
+        <div className='relative flex flex-col md:justify-center justify-start items-center h-full w-full'>
+          <span className="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
+            <motion.img
+              src="/maps/blast.svg"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              alt="blast"
+              className="w-12 h-12 md:w-96 md:h-96 object-contain"
+              initial={{ scale: 1, opacity: 0 }}
+              animate={controls}
+            />
+          </span>
+
           <span>
             {currentItem && (
               <div className="flex flex-col items-center mb-4">
