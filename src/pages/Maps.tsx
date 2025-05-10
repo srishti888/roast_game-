@@ -5,7 +5,10 @@ import { Item, User } from '@/types/type';
 import { availableItems } from '@/data/items';
 import { motion, useAnimationControls } from "motion/react"
 
-import MapPlot from '@/components/MapPlot';
+import MapButton from '@/components/ui/map-button';
+import { Button } from "@/components/ui/button";
+import Game from '@/components/Game';
+import { Map, X } from "lucide-react";
 
 const Maps = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -67,7 +70,7 @@ const Maps = () => {
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
   
   React.useEffect(() => {
-    intervalRef.current = setInterval(upDateBom, 2000);
+    intervalRef.current = setInterval(upDateBom, 500);
     
     return () => {
       if (intervalRef.current) {
@@ -156,9 +159,21 @@ const Maps = () => {
 
 
       {isMapOpen &&
-        <MapPlot
-          user={user}
-        />
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-auto bg-background rounded-lg shadow-lg">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute right-2 top-2 z-10" 
+              onClick={() => setMapOpen(false)}
+            >
+              <X />
+            </Button>
+            <div className="p-4">
+              <Game user={user} />
+            </div>
+          </div>
+        </div>
       }
 
 
@@ -168,6 +183,21 @@ const Maps = () => {
           Restart
         </button>
 
+        <MapButton
+          isMapOpen={isMapOpen}
+          setMapOpen={setMapOpen}
+          setMapLoading={setMapLoading}
+        />
+        {/* {isMapLoading && (
+          <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-black/50 z-20">
+            <img
+              src="/maps/loading.svg"
+              alt="Loading"
+              className="w-12 h-12 md:w-16 md:h-16 object-contain animate-spin"
+            />
+          </div>
+        )} */}
+        
         <div className='hidden md:flex flex-col justify-items-start items-center h-screen w-[100%] pt-12'>
           <div className='text-4xl font-bold text-gray-700 w-full text-center p-2 pb-5'>
             INVENTORY

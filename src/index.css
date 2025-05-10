@@ -43,6 +43,11 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --cell-grass: 142 39% 38%;
+    --cell-water: 210 70% 45%;
+    --cell-wall: 30 15% 35%;
+    --cell-path: 48 46% 49%;
   }
 
   .dark {
@@ -81,6 +86,12 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+
+    --cell-grass: 142 39% 38%;
+    --cell-water: 210 70% 45%;
+    --cell-wall: 30 15% 35%;
+    --cell-path: 48 46% 49%;
   }
 }
 
@@ -150,5 +161,33 @@
   .war-card {
     @apply bg-war-metal bg-opacity-80 border border-gray-700 backdrop-blur-sm
            rounded-md shadow-lg shadow-black/30;
+  }
+
+  .game-cell {
+    @apply border border-gray-400 transition-all duration-100 cursor-pointer select-none;
+  }
+  
+  .game-cell:hover {
+    @apply transform scale-105 z-10;
+  }
+  
+  .game-cell.selected {
+    @apply ring-2 ring-yellow-400 z-20;
+  }
+  
+  .game-cell.grass {
+    @apply bg-[hsl(var(--cell-grass))];
+  }
+  
+  .game-cell.water {
+    @apply bg-[hsl(var(--cell-water))];
+  }
+  
+  .game-cell.wall {
+    @apply bg-[hsl(var(--cell-wall))];
+  }
+  
+  .game-cell.path {
+    @apply bg-[hsl(var(--cell-path))];
   }
 }
