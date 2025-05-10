@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { headlines } from '../data/headlines';
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "../lib/firebase"; // adjust path as needed
 import WarBackground from '@/components/WarBackground';
+import { useMutation } from 'convex/react';
+
 
 const TOTAL_QUESTIONS = 20;
 const TARGET_SCORE = 170;
@@ -12,6 +16,7 @@ export default function HeadlineGame() {
   const [score, setScore] = useState(0);
   const [questionCount, setQuestionCount] = useState(1);
   const [gameOver, setGameOver] = useState(false);
+  const [pastedImage, setPastedImage] = useState<string | null>(null);
   const [allowUpload, setAllowUpload] = useState(false);
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
 
@@ -58,15 +63,36 @@ const handleAnswer = (answer: boolean) => {
     }
   };
 
-  const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+//   const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     const file = e.target.files?.[0];
+//     if (file) {
+//       setScreenshotFile(file);
+//       // You could send this to a backend here if needed.
+//       setResult("🛡️ Screenshot uploaded! No penalty this time.");
+//       setAllowUpload(false);
+//     }
+//   };
+
+const handleScreenshotUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setScreenshotFile(file);
-      // You could send this to a backend here if needed.
-      setResult("🛡️ Screenshot uploaded! No penalty this time.");
-      setAllowUpload(false);
+      try {
+        const storageRef = ref(storage, `screenshots/${Date.now()}-${file.name}`);
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+  
+        console.log("File uploaded successfully. Download URL:", downloadURL);
+  
+        setResult("🛡️ Screenshot uploaded & saved! No penalty this time.");
+        setAllowUpload(false);
+        setScreenshotFile(file);
+      } catch (err) {
+        console.error("Firebase upload error:", err);
+        setResult("❌ Upload failed. Try again or accept penalty.");
+      }
     }
   };
+  
   
   const acceptPenalty = () => {
     setScore(prev => prev - 10);
@@ -85,6 +111,26 @@ const handleAnswer = (answer: boolean) => {
     setTimeLeft(9);
     setQuestionCount(prev => prev + 1);
   };
+
+  const handlePaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
+    const items = event.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.indexOf("image") !== -1) {
+        const file = item.getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const imageUrl = e.target?.result as string;
+            setPastedImage(imageUrl);
+            setAllowUpload(false); // allow next question now
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    }
+  };
+  
 
   return (
     <WarBackground>
@@ -122,31 +168,71 @@ const handleAnswer = (answer: boolean) => {
               </p>
 
               {!result ? (
-                <div className="flex justify-center gap-4">
-                  <button
-                    onClick={() => handleAnswer(true)}
-                    className="bg-war-red text-white px-6 py-2 rounded hover:bg-red-700 transition-colors"
-                  >
-                    FAKE
-                  </button>
-                  <button
-                    onClick={() => handleAnswer(false)}
-                    className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition-colors"
-                  >
-                    REAL
-                  </button>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center">
-                  <p className="text-war-gray mt-4 text-center">{result}</p>
-                  <button
-                    onClick={handleNext}
-                    className="mt-6 bg-war-gray text-white px-4 py-2 rounded hover:bg-war-red transition-colors"
-                  >
-                    Next Headline
-                  </button>
-                </div>
-              )}
+  <div className="flex justify-center gap-4">
+    <button
+      onClick={() => handleAnswer(true)}
+      className="bg-war-red text-white px-6 py-2 rounded hover:bg-red-700 transition-colors"
+    >
+      FAKE
+    </button>
+    <button
+      onClick={() => handleAnswer(false)}
+      className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition-colors"
+    >
+      REAL
+    </button>
+  </div>
+) : (
+  <div className="flex flex-col items-center mt-4">
+    <p className="text-war-gray text-center">{result}</p>
+
+    {allowUpload ? (
+  <>
+    {!pastedImage ? (
+      <>
+        <div
+          onPaste={handlePaste}
+          className="mt-4 p-4 bg-yellow-800 text-white border border-dashed border-yellow-400 rounded text-center cursor-pointer"
+        >
+          📋 Paste a screenshot from your clipboard here (Ctrl+V)
+        </div>
+
+        <button
+          onClick={acceptPenalty}
+          className="mt-3 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+        >
+          ❌ Accept -10 Penalty
+        </button>
+      </>
+    ) : (
+      <>
+        <img
+          src={pastedImage}
+          alt="Pasted screenshot"
+          className="mt-4 max-w-sm border border-gray-400 rounded shadow"
+        />
+        <button
+          onClick={handleNext}
+          className="mt-6 bg-war-gray text-white px-4 py-2 rounded hover:bg-war-red transition-colors"
+        >
+          Next Headline
+        </button>
+      </>
+    )}
+  </>
+) : (
+  <button
+    onClick={handleNext}
+    className="mt-6 bg-war-gray text-white px-4 py-2 rounded hover:bg-war-red transition-colors"
+  >
+    Next Headline
+  </button>
+)}
+
+
+  </div>
+)}
+
             </>
           )}
         </div>

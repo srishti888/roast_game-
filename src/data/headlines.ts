@@ -19,6 +19,13 @@ export const headlines = [
     { text: "ISRO congratulates itself, Pak space agency still looking for launch button", isFake: true },
     { text: "Pakistan proposes tea diplomacy with India", isFake: false },
 
+    { text: "asif khwaja got scolded schooled by journalist", isFake: false },
+    { text: "asif khwaja rakshamantri nai standup comedian jyada better hai", isFake: false },
+    { text: "pakistan hit around 300 drones recently over India", isFake: false },
+    { text: "India too fears that our location of missiles will get revealed", isFake: true },
+    { text: "Pakistan is being transparent with its citizens", isFake: true },
+
+
 
     // Add more...
   ];
