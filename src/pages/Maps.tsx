@@ -1,10 +1,11 @@
 import React from 'react';
-import { Image } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import WarBackground from '@/components/WarBackground';
 import { Item, User } from '@/types/type';
 import { availableItems } from '@/data/items';
 import { motion, useAnimationControls } from "motion/react"
+
+import MapPlot from '@/components/MapPlot';
 
 const Maps = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -22,6 +23,9 @@ const Maps = () => {
   
   const controls = useAnimationControls();
   const [isAnimating, setIsAnimating] = useState(false);
+  
+  const [isMapOpen, setMapOpen] = useState(false);
+  const [isMapLoading, setMapLoading] = useState(false);
 
   useEffect(() => {
     console.log('getting user');
@@ -149,6 +153,16 @@ const Maps = () => {
 
   return (
     <WarBackground>
+
+
+      {isMapOpen &&
+        <MapPlot
+          user={user}
+        />
+      }
+
+
+
       <div className="h-screen flex flex-col md:flex-row items-center justify-center align-center">
         <button className='absolute top-5 right-10 text-xl py-2 px-3 z-10 bg-slate-600 rounded-sm hover:bg-slate-500 active:bg-slate-400' onClick={ResetPlay}>
           Restart
@@ -197,9 +211,11 @@ const Maps = () => {
                   return (
                     <div
                         key={index}
-                        className='aspect-square bg-red-500 rounded-sm cursor-pointer hover:bg-red-400'
+                        className='flex justify-center items-center aspect-square bg-red-500 rounded-sm cursor-pointer hover:bg-red-400'
                         onMouseDown={() => handleClick(true)}
-                    ></div>
+                    >
+                      <img src={`/maps/bomb.svg`} alt="" width={150} className='object-contain opacity-80' />
+                    </div>
                   );
                 }
                 return (
