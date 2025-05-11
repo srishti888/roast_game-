@@ -70,7 +70,7 @@ const Maps = () => {
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
   
   React.useEffect(() => {
-    intervalRef.current = setInterval(upDateBom, 3000);
+    intervalRef.current = setInterval(upDateBom, 500);
     
     return () => {
       if (intervalRef.current) {
@@ -122,7 +122,7 @@ const Maps = () => {
       // Construct user object for storage, using updatedItems
       // Target and level for storage are based on values from the current render cycle,
       // consistent with the user's original selected code structure.
-      const storageTargetValue = target + 10;
+      const storageTargetValue = target + 3;
       const storageLevelValue = userLevel + 1;
 
       const userToStore: User = {
