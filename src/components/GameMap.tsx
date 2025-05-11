@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useGameContext, Cell } from "@/contexts/GameContext";
-import GameCell from "./GameCell"; // Assuming Cell type is in a types file - adjust if necessary
+import GameCell from "./GameCell";
 import { Target, Shield, Crosshair, MapPin, Star, Sparkles } from "lucide-react";
 
 interface GameMapProps {
@@ -19,7 +19,7 @@ const GameMap = ({
     generateMap, 
     selectedCell, 
     activeItem, 
-    applyItemToCell, // Renamed from useItemOnCell to avoid hook naming confusion
+    useItemOnCell,
     remainingTargets,
     isGameComplete
   } = useGameContext();
@@ -30,18 +30,12 @@ const GameMap = ({
     // or when width/height explicitly changes
     generateMap(width, height);
   }, [width, height]); // Remove generateMap from dependencies to prevent loop
-  // Use proper typing for the cell parameter
+
   const handleCellClick = (cell: Cell) => {
     if (activeItem) {
-      applyItemToCell(activeItem, cell);
+      useItemOnCell(activeItem, cell);
     }
   };
-
-  
-
-
-
-
   
   return (
     <div className="flex flex-col items-center w-full max-w-full">

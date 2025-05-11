@@ -70,7 +70,7 @@ const Maps = () => {
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
   
   React.useEffect(() => {
-    intervalRef.current = setInterval(upDateBom, 500);
+    intervalRef.current = setInterval(upDateBom, 3000);
     
     return () => {
       if (intervalRef.current) {
@@ -97,15 +97,47 @@ const Maps = () => {
     setPoints(points + 1);
     if (points >= target) {
       setWinState(true);
-      setItems([...items, currentItem as Item]);
+      // setItems([...items, currentItem as Item]); // This line is replaced
+
+      // New logic for item quantity
+      let updatedItems: Item[];
+      const currentNonNullItem = currentItem!; // currentItem is expected to be non-null here
+      const existingItemIndex = items.findIndex(item => item.id === currentNonNullItem.id);
+
+      if (existingItemIndex > -1) {
+        // Item exists, increment its quantity
+        updatedItems = items.map((item, index) =>
+          index === existingItemIndex ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      } else {
+        // New item, add it with quantity 1
+        updatedItems = [...items, { ...currentNonNullItem, quantity: 1 }];
+      }
+      setItems(updatedItems); // Update items state
       
       setPoints(0);
-      setTarget(target + 10);
+      setTarget(target + 3);
       setUserLevel(userLevel + 1);
-      console.log('user', { ...user, target: target+10 ,level: userLevel+1, items: [...items, currentItem as Item] } );
-      setUser({ ...user, target: target+10 ,level: userLevel+1, items: [...items, currentItem as Item] });
-      localStorage.setItem('user', JSON.stringify({ ...user, target: target+10 ,level: userLevel+1, items: [...items, currentItem as Item] }));
-      // setWinState(true);
+
+      // Construct user object for storage, using updatedItems
+      // Target and level for storage are based on values from the current render cycle,
+      // consistent with the user's original selected code structure.
+      const storageTargetValue = target + 10;
+      const storageLevelValue = userLevel + 1;
+
+      const userToStore: User = {
+        id: user?.id || 'guest-' + Date.now().toString(), // Provide default if user or user.id is null/undefined
+        name: user?.name || 'Guest Player',             // Provide default if user or user.name is null/undefined
+        experience: user?.experience || 0,              // Provide default for experience
+        level: storageLevelValue,
+        target: storageTargetValue,
+        items: updatedItems,
+      };
+      
+      console.log('Saving user data:', userToStore);
+      setUser(userToStore);
+      localStorage.setItem('user', JSON.stringify(userToStore));
+      // setWinState(true); // Already set at the beginning of this block
       
       setBom(undefined);
       setTimeout(() => {
@@ -160,7 +192,7 @@ const Maps = () => {
 
       {isMapOpen &&
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-auto bg-background rounded-lg shadow-lg">
+          <div className="relative w-full max-w-6xl max-h-[90vh] overflow-auto bg-background rounded-lg shadow-lg">
             <Button 
               variant="ghost" 
               size="icon" 
@@ -170,7 +202,7 @@ const Maps = () => {
               <X />
             </Button>
             <div className="p-4">
-              <Game user={user} />
+              <Game User={user} />
             </div>
           </div>
         </div>
@@ -202,30 +234,34 @@ const Maps = () => {
           <div className='text-4xl font-bold text-gray-700 w-full text-center p-2 pb-5'>
             INVENTORY
           </div>
-          
-          <div className='justify-center md:h-[40rem] items-center gap-4 overflow-x-scroll scrollbar-hide'>
+            <div className='justify-center md:h-[40rem] items-center gap-4 overflow-x-scroll scrollbar-hide'>
               {items.length > 0 ? (
-                items.map((item, index) => (
-                <div key={index} className="flex-none aspect-square p-5 bg-gray-800 border-b-2 justify-center items-center hover:bg-gray-700 cursor-pointer">
-                  {item.imageUrl && (
-                    <img
-                      src={`/maps/${item.imageUrl}`}
-                      alt={item.name}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      srcSet={`/maps/${item.imageUrl} 1x, /maps/${item.imageUrl} 2x`}
-                      loading="lazy"
-                      className="w-16 h-16 md:w-44 md:h-44 object-contain hover:scale-105 transition-transform duration-300 ease-in-out"
-                    />
-                  )}
-                </div>
-                ))
+              items.map((item, index) => (
+              <div key={index} className="flex-none aspect-square p-5 bg-gray-800 border-b-2 justify-center items-center hover:bg-gray-700 cursor-pointer relative">
+                {item.imageUrl && (
+                <>
+                  <img
+                  src={`/maps/${item.imageUrl}`}
+                  alt={item.name}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  srcSet={`/maps/${item.imageUrl} 1x, /maps/${item.imageUrl} 2x`}
+                  loading="lazy"
+                  className="w-16 h-16 md:w-44 md:h-44 object-contain hover:scale-105 transition-transform duration-300 ease-in-out"
+                  />
+                  <span className="absolute bottom-2 right-2 aspect-square bg-yellow-600 text-white px-2 py-1 rounded-full text-sm font-bold">
+                  x{item.quantity || 1}
+                  </span>
+                </>
+                )}
+              </div>
+              ))
               ) : (
-                <div className="flex-none aspect-square p-5 bg-gray-800 justify-center items-center ">
-                  <p className="text-white/20 font-bold">No items found</p>
-                </div>
+              <div className="flex-none aspect-square p-5 bg-gray-800 justify-center items-center ">
+                <p className="text-white/20 font-bold">No items found</p>
+              </div>
               )}
             
-          </div>
+            </div>
         </div>
 
         <div className="h-full p-4 md:px-10 flex flex-col justify-items-start items-center w-screen md:w-[calc(100vh+80em)] max-w-[100vh] rounded-lg">
