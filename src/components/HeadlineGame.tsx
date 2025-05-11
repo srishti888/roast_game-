@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+'use client';
+import { useState, useEffect, useRef } from 'react';
 import { headlines } from '../data/headlines';
 import WarBackground from '@/components/WarBackground';
 import WarCard from '@/components/WarCard';
@@ -6,6 +7,8 @@ import StatusBar from '@/components/StatusBar';
 import HeadlineDisplay from '@/components/HeadlineDisplay';
 import ActionButton from '@/components/ActionButton';
 import ResultDisplay from '@/components/ResultDisplay';
+import AudioPlayer from 'react-h5-audio-player';
+import 'react-h5-audio-player/lib/styles.css';
 
 const TOTAL_QUESTIONS = 20;
 const TARGET_SCORE = 170;
@@ -21,9 +24,20 @@ export default function HeadlineGame() {
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
   const [allowUpload, setAllowUpload] = useState(false);
 
+  const victoryAudioRef = useRef<any>(null);
+  const lossAudioRef = useRef<any>(null);
+  const tenSecLeftAudioRef = useRef<any>(null); // 👈 New audio ref
+
   function getRandomHeadline() {
     return headlines[Math.floor(Math.random() * headlines.length)];
   }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      victoryAudioRef.current?.audio?.current?.play();
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (timeLeft <= 0 && !result) {
@@ -31,10 +45,23 @@ export default function HeadlineGame() {
       setResultType(false);
       setScore(prev => prev - 10);
       setScreenshotPreview(null);
+      playLossSound();
     }
     const timer = setTimeout(() => setTimeLeft(t => Math.max(t - 1, 0)), 1000);
     return () => clearTimeout(timer);
   }, [timeLeft, result]);
+
+  const playVictorySound = () => {
+    victoryAudioRef.current?.audio?.current?.play();
+  };
+
+  const playLossSound = () => {
+    lossAudioRef.current?.audio?.current?.play();
+  };
+
+  const playTenSecLeftSound = () => {
+    tenSecLeftAudioRef.current?.audio?.current?.play(); // 👈 Trigger sound
+  };
 
   const handleAnswer = (answer: boolean) => {
     if (result) return;
@@ -46,10 +73,12 @@ export default function HeadlineGame() {
         : "VERIFIED TRANSMISSION! 🏆 boys played well!");
       setResultType(true);
       setScore(prev => prev + 10);
+      playVictorySound();
     } else {
       setResult("ANALYSIS ERROR! PROVIDE SS OF ACTUAL FAKE NEWS FLOATING TO AVOID PENALTY");
       setResultType(false);
       setAllowUpload(true);
+      playLossSound();
     }
   };
 
@@ -90,6 +119,7 @@ export default function HeadlineGame() {
     setQuestionCount(prev => prev + 1);
     setScreenshotPreview(null);
     setAllowUpload(false);
+    playTenSecLeftSound(); // 👈 Play sound
   };
 
   const restartGame = () => {
@@ -102,6 +132,7 @@ export default function HeadlineGame() {
     setTimeLeft(9);
     setScreenshotPreview(null);
     setAllowUpload(false);
+    playTenSecLeftSound(); // 👈 Play sound
   };
 
   return (
@@ -116,11 +147,46 @@ export default function HeadlineGame() {
               PROPAGANDA DETECTION UNIT
             </h1>
             <div className="text-white/70 text-xs font-mono mt-1">
-              [ TALKING PEACE, PLANTING BOMBS — PICK ONE, HYPOCRITE. ] 
+              [ TALKING PEACE, PLANTING BOMBS — PICK ONE, HYPOCRITE. ]
             </div>
-          
           </div>
-          
+
+          {/* 🎵 VICTORY SOUND */}
+          <AudioPlayer
+            ref={victoryAudioRef}
+            src="/sounds/Voicy_Jai hind dosto .mp3"
+            autoPlay={false}
+            className="hidden"
+            showJumpControls={false}
+            customAdditionalControls={[]}
+            customVolumeControls={[]}
+            layout="horizontal"
+          />
+
+          {/* 🎵 LOSS SOUND */}
+          <AudioPlayer
+            ref={lossAudioRef}
+            src="/sounds/sed.mp3"
+            autoPlay={false}
+            className="hidden"
+            showJumpControls={false}
+            customAdditionalControls={[]}
+            customVolumeControls={[]}
+            layout="horizontal"
+          />
+
+          {/* 🎵 10-SECONDS-LEFT SOUND */}
+          <AudioPlayer
+            ref={tenSecLeftAudioRef}
+            src="/sounds/10-seconds-left.mp3"
+            autoPlay={false}
+            className="hidden"
+            showJumpControls={false}
+            customAdditionalControls={[]}
+            customVolumeControls={[]}
+            layout="horizontal"
+          />
+
           <WarCard>
             <StatusBar
               timeLeft={timeLeft}
@@ -128,7 +194,7 @@ export default function HeadlineGame() {
               questionCount={questionCount}
               totalQuestions={TOTAL_QUESTIONS}
             />
-            
+
             {gameOver ? (
               <div className="py-12 text-center space-y-8">
                 <div className="inline-block p-5 border border-war-gray/30 mb-4">
@@ -139,11 +205,9 @@ export default function HeadlineGame() {
                       <span className="text-war-red">MISSION FAILED</span>
                     )}
                   </h2>
-                  
                   <div className="text-xl font-mono mb-2 text-war-gray">
                     FINAL SCORE: <span className="text-orange-500">{score}</span>
                   </div>
-                  
                   <div className="text-war-gray font-mono mt-4">
                     {score >= TARGET_SCORE ? (
                       <span>Your intelligence analysis skills have secured our nation's safety.</span>
@@ -152,7 +216,7 @@ export default function HeadlineGame() {
                     )}
                   </div>
                 </div>
-                
+
                 <ActionButton onClick={restartGame} color="blue">
                   RESTART MISSION
                 </ActionButton>
@@ -160,7 +224,7 @@ export default function HeadlineGame() {
             ) : (
               <>
                 <HeadlineDisplay text={headline.text} />
-                
+
                 {!result ? (
                   <div className="flex justify-center gap-6 mb-4">
                     <ActionButton onClick={() => handleAnswer(true)} color="red">
@@ -173,15 +237,21 @@ export default function HeadlineGame() {
                 ) : (
                   <div>
                     <ResultDisplay result={result} isCorrect={resultType} />
-                    
+
                     {allowUpload ? (
                       <>
                         {!screenshotPreview ? (
                           <>
-                            <div onPaste={handlePaste} className="mt-4 p-4 bg-yellow-800 text-white border border-dashed border-yellow-400 rounded text-center cursor-pointer animate-pulse">
+                            <div
+                              onPaste={handlePaste}
+                              className="mt-4 p-4 bg-yellow-800 text-white border border-dashed border-yellow-400 rounded text-center cursor-pointer animate-pulse"
+                            >
                               📋 Paste a screenshot here (Ctrl+V)
                             </div>
-                            <button onClick={acceptPenalty} className="mt-3 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
+                            <button
+                              onClick={acceptPenalty}
+                              className="mt-3 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+                            >
                               ❌ Accept -10 Penalty
                             </button>
                           </>
@@ -193,10 +263,14 @@ export default function HeadlineGame() {
                                 <div className="text-green-400 font-mono text-xs">INTEL RECEIVED</div>
                               </div>
                               <div className="flex justify-center">
-                                <img src={screenshotPreview} alt="Intel" className="max-w-full max-h-48 object-contain border border-war-gray/30" />
+                                <img
+                                  src={screenshotPreview}
+                                  alt="Intel"
+                                  className="max-w-full max-h-48 object-contain border border-war-gray/30"
+                                />
                               </div>
                             </div>
-                            
+
                             <div className="flex justify-center">
                               <ActionButton onClick={handleNext} color="gray">
                                 NEXT TRANSMISSION
@@ -217,13 +291,12 @@ export default function HeadlineGame() {
               </>
             )}
           </WarCard>
-          
+
           <div className="mt-4 text-center text-war-gray text-s font-mono">
-            PROPAGANDAS v1.0 •MADE IN PAKISTAN's FINEST WHATSAPP FORWARD LABS
+            PROPAGANDAS v1.0 • MADE IN PAKISTAN's FINEST WHATSAPP FORWARD LABS
           </div>
         </div>
       </div>
     </WarBackground>
   );
 }
-
