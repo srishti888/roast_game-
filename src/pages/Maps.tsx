@@ -14,7 +14,7 @@ const Maps = () => {
   const [user, setUser] = useState<User | null>(null);
   const [bom, setBom] = useState<number[]>();
   const [points, setPoints] = useState<number>(0);
-  const [target, setTarget] = useState<number>(10);
+  const [target, setTarget] = useState<number>(3);
   const [items, setItems] = useState<Item[]>([]);
   const [currentItem, setCurrentItem] = useState<Item | null>(
     defaultItems[Math.floor(Math.random() * defaultItems.length)]
@@ -153,7 +153,7 @@ const Maps = () => {
 
   const ResetPlay = () => {
     setPoints(0);
-    setTarget(10);
+    setTarget(3);
     setUserLevel(1);
     setItems([]);
     setCurrentItem(defaultItems[Math.floor(Math.random() * defaultItems.length)]);

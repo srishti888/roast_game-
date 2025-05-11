@@ -8,7 +8,7 @@ export const defaultItems: Item[] = [
       quantity: 0,
       rarity: 'common',
       type: 'weapon',
-      value: 10,
+      value: 12,
       imageUrl: '/bomb.svg',
       effects: [{ name: 'Blast', description: 'Damages all nearby targets', power: 5 }]
     },
@@ -25,12 +25,11 @@ export const defaultItems: Item[] = [
     },
     {
       id: 'cracker',
-      name: 'Cracker',
-      description: 'Small explosive with distracting effect',
+      name: 'Cracker',      description: 'Small explosive with distracting effect',
       quantity: 0,
       rarity: 'common',
-      type: 'consumable',
-      value: 5,
+      type: 'weapon',
+      value: 8,
       imageUrl: '/cracker.svg',
       effects: [{ name: 'Distraction', description: 'Temporarily confuses enemies', power: 3 }]
     }

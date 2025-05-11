@@ -19,23 +19,21 @@ const GameMap = ({
     generateMap, 
     selectedCell, 
     activeItem, 
-    useItemOnCell,
+    deployItemOnCell,
     remainingTargets,
     isGameComplete
-  } = useGameContext();
-  
-  // Fix the infinite loop by using a proper dependency array
+  } = useGameContext();    // Generate the map only on mount or when map dimensions change
   useEffect(() => {
-    // Only generate the map once when the component mounts
-    // or when width/height explicitly changes
-    generateMap(width, height);
-  }, [width, height]); // Remove generateMap from dependencies to prevent loop
-
-  const handleCellClick = (cell: Cell) => {
-    if (activeItem) {
-      useItemOnCell(activeItem, cell);
+    // Only generate new map if there isn't one already
+    if (!map || map.length === 0 || map[0].length !== width || map.length !== height) {
+      generateMap(width, height);
     }
-  };
+  }, [width, height, generateMap, map]);
+  const handleCellClick = React.useCallback((cell: Cell) => {
+    if (activeItem) {
+      deployItemOnCell(activeItem, cell);
+    }
+  }, [activeItem, deployItemOnCell]);
   
   return (
     <div className="flex flex-col items-center w-full max-w-full">
