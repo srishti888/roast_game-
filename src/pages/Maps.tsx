@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import WarBackground from '@/components/WarBackground';
 import { Item, User } from '@/types/type';
-import { availableItems } from '@/data/items';
+import { defaultItems } from '@/data/items';
 import { motion, useAnimationControls } from "motion/react"
 
 import MapButton from '@/components/ui/map-button';
@@ -17,7 +17,7 @@ const Maps = () => {
   const [target, setTarget] = useState<number>(10);
   const [items, setItems] = useState<Item[]>([]);
   const [currentItem, setCurrentItem] = useState<Item | null>(
-    availableItems[Math.floor(Math.random() * availableItems.length)]
+    defaultItems[Math.floor(Math.random() * defaultItems.length)]
   );
   const [userLevel, setUserLevel] = useState<number>(1);
   const [winState, setWinState] = useState<boolean>(false);
@@ -47,10 +47,10 @@ const Maps = () => {
       setUserLevel(user.level);
       setTarget(user.target);
       setItems(user.items);
-      setCurrentItem(availableItems[Math.floor(Math.random() * availableItems.length)]);
+      setCurrentItem(defaultItems[Math.floor(Math.random() * defaultItems.length)]);
     } else {
       setUserLevel(1);
-      setCurrentItem(availableItems[Math.floor(Math.random() * availableItems.length)]);
+      setCurrentItem(defaultItems[Math.floor(Math.random() * defaultItems.length)]);
     }
   }, [user]);
   
@@ -109,7 +109,7 @@ const Maps = () => {
       
       setBom(undefined);
       setTimeout(() => {
-        setCurrentItem(availableItems[Math.floor(Math.random() * availableItems.length)]);
+        setCurrentItem(defaultItems[Math.floor(Math.random() * defaultItems.length)]);
       }, 1000);
       setTimeout(() => {
         upDateBom();
@@ -124,7 +124,7 @@ const Maps = () => {
     setTarget(10);
     setUserLevel(1);
     setItems([]);
-    setCurrentItem(availableItems[Math.floor(Math.random() * availableItems.length)]);
+    setCurrentItem(defaultItems[Math.floor(Math.random() * defaultItems.length)]);
     setBom(undefined);
     setWinState(false);
 

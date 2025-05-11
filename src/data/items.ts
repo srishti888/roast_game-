@@ -1,11 +1,11 @@
 import { Item } from '@/types/type';
 
-export const availableItems: Item[] = [
+export const defaultItems: Item[] = [
     {
       id: 'bomb',
       name: 'Bomb',
       description: 'A basic explosive',
-      quantity: 5,
+      quantity: 0,
       rarity: 'common',
       type: 'weapon',
       value: 10,
@@ -16,7 +16,7 @@ export const availableItems: Item[] = [
       id: 'missile',
       name: 'Missile',
       description: 'Guided projectile',
-      quantity: 3,
+      quantity: 0,
       rarity: 'uncommon',
       type: 'weapon',
       value: 20,
@@ -27,7 +27,7 @@ export const availableItems: Item[] = [
       id: 'cracker',
       name: 'Cracker',
       description: 'Small explosive with distracting effect',
-      quantity: 10,
+      quantity: 0,
       rarity: 'common',
       type: 'consumable',
       value: 5,

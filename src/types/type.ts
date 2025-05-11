@@ -1,4 +1,4 @@
-type Item = {
+export type Item = {
   id: string;
   name: string;
   description: string;
@@ -14,7 +14,7 @@ type Item = {
   }[];
 };
 
-type User = {
+export type User = {
   id: string;
   name: string;
   level: number;
@@ -22,5 +22,3 @@ type User = {
   target: number;
   items: Item[];
 }
-
-export type { Item, User };
