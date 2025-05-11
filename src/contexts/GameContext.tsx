@@ -35,6 +35,7 @@ interface GameContextType {
   remainingTargets: number;
   isGameComplete: boolean;
   resetGame: () => void;
+  mapLevel: number;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -61,7 +62,11 @@ const defaultUser: User = {
   items: defaultItems.map(item => ({ ...item, quantity: item.quantity || 1 })) // Ensure default items have quantity
 };
 
-export const GameProvider = ({ children, initialUser }: GameProviderProps) => {
+export const GameProvider = ({ children, initialUser }: GameProviderProps) => {  const [mapLevel, setMapLevel] = useState<number>(() => {
+    const storedLevel = localStorage.getItem('mapLevel');
+    return storedLevel ? parseInt(storedLevel, 10) : 1;
+  });
+
   const [map, setMap] = useState<Cell[][]>(() => {
     const storedMap = localStorage.getItem('gameMap');
     if (storedMap) {
@@ -112,76 +117,80 @@ export const GameProvider = ({ children, initialUser }: GameProviderProps) => {
       localStorage.setItem('user', JSON.stringify(newUser));
       return newUser;
     });
-  }, []);
-
-  const getMapSize = useCallback((level: number) => {
-    const baseWidth = 10;
-    const baseHeight = 8;
-    const widthIncrease = Math.floor(level / 3) * 2;
-    const heightIncrease = Math.floor(level / 3) * 2;
-    return {
-      width: baseWidth + widthIncrease,
-      height: baseHeight + heightIncrease
-    };
+  }, []);  const getMapSize = useCallback((level: number) => {
+    // Fixed sizes that work well with the UI
+    let width = 10;
+    let height = 7;
+    
+    // Only two size tiers for better fit
+    if (level > 5) {
+      width = 12;
+      height = 8;
+    }
+    
+    return { width, height };
   }, []);
 
   const generateMap = useCallback((width: number, height: number) => {
-    // Check if we should really generate a new map
     if (map.length > 0 && !isGameComplete) {
-      // If we have an existing map and it's not complete, don't generate a new one
       return;
     }
-
+    
     const newMap: Cell[][] = [];
     let targetCount = 0;
-    const numBases = Math.max(5, Math.min(user.level * 2, 15));
 
+    // Scale number of bases with map level
+    const numBases = Math.max(5, Math.min(mapLevel * 2, 15));
+
+    // Create empty map
     for (let y = 0; y < height; y++) {
       const row: Cell[] = [];
       for (let x = 0; x < width; x++) {
-        // Simplified cell generation for brevity, retain original logic here
-        row.push({ id: `${x}-${y}`, type: "grass", x, y, health: 100 });
+        row.push({ id: `${x}-${y}`, type: "grass", x, y });
       }
       newMap.push(row);
     }
 
+    // Place bases with health scaled by map level
     let basesPlaced = 0;
     while (basesPlaced < numBases) {
       const x = Math.floor(Math.random() * width);
       const y = Math.floor(Math.random() * height);
+      
       if (newMap[y][x].type !== "water" && newMap[y][x].type !== "base") {
         const centerX = Math.floor(width / 2);
         const centerY = Math.floor(height / 2);
         const distanceFromCenter = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
         const maxDistance = Math.sqrt(Math.pow(width / 2, 2) + Math.pow(height / 2, 2));
-        // Base health from distance and level
-        const baseHealth = 1 + Math.floor((distanceFromCenter / maxDistance) * 10) + user.level * 3;
-        // Add randomness: ±20% variation
-        const randomFactor = 0.8 + Math.random() * 0.4; // Between 0.8 and 1.2
+
+        // Scale base health with map level
+        const baseHealth = 1 + Math.floor((distanceFromCenter / maxDistance) * 10) + mapLevel * 3;
+        const randomFactor = 0.8 + Math.random() * 0.4; // ±20% variation
         const health = Math.max(1, Math.floor(baseHealth * randomFactor));
+
         newMap[y][x] = { ...newMap[y][x], type: "base", health, isTarget: true };
         targetCount++;
         basesPlaced++;
       }
     }
+
     setMap(newMap);
     setRemainingTargets(targetCount);
     setIsGameComplete(false);
     localStorage.setItem('gameMap', JSON.stringify(newMap));
-  }, [user.level, map.length, isGameComplete]); // user.level, map.length, and isGameComplete are dependencies
+  }, [map.length, isGameComplete, mapLevel]);
 
+  // Initial map generation
   useEffect(() => {
-    // Only generate a new map if there isn't one stored
     if (map.length === 0) {
-      const { width, height } = getMapSize(user.level);
+      const { width, height } = getMapSize(mapLevel);
       generateMap(width, height);
     } else {
-      // If we have a stored map, make sure the remaining targets count is correct
       const targetCount = map.flat().filter(cell => cell.type === "base" && cell.health > 0).length;
       setRemainingTargets(targetCount);
       setIsGameComplete(targetCount === 0);
     }
-  }, []); // Empty dependency array means this only runs once on mount
+  }, [map.length, mapLevel, getMapSize, generateMap]);
 
   // Save map to localStorage whenever it changes
   useEffect(() => {
@@ -196,14 +205,17 @@ export const GameProvider = ({ children, initialUser }: GameProviderProps) => {
   // Add new effect for level progression
   useEffect(() => {
     if (isGameComplete) {
-      const { width, height } = getMapSize(user.level);
+      // Use mapLevel for generating the next map
+      const { width, height } = getMapSize(mapLevel);
+      
       // Wait a bit before generating the new map
       const timer = setTimeout(() => {
         generateMap(width, height);
       }, 1500); // 1.5 seconds delay
+      
       return () => clearTimeout(timer);
     }
-  }, [isGameComplete, user.level, getMapSize, generateMap]);
+  }, [isGameComplete, mapLevel, getMapSize, generateMap]);
 
   const updateCell = (x: number, y: number, type: CellType) => {
     setMap(prevMap =>
@@ -303,32 +315,42 @@ export const GameProvider = ({ children, initialUser }: GameProviderProps) => {
         title: "No Effect!",
         description: `${item.name} had no effect on this cell.`,
       });
-    }
-    setActiveItem(null);    if (remainingTargets - targetsDestroyedThisTurn <= 0 && newMap.flat().every(c => c.type !== 'base' || c.health === 0)) {
+    }    setActiveItem(null);    if (remainingTargets - targetsDestroyedThisTurn <= 0 && newMap.flat().every(c => c.type !== 'base' || c.health === 0)) {
       setIsGameComplete(true);
+      setMapLevel(prevLevel => {
+        const newLevel = prevLevel + 1;
+        localStorage.setItem('mapLevel', newLevel.toString());
+        return newLevel;
+      });
       
       setUser(prevUser => ({
         ...prevUser,
-        level: prevUser.level + 1,
+        mapLevel: prevUser.mapLevel + 1,
         experience: prevUser.experience + 100
       }));
 
       toast({ 
-        title: "Level Up!", 
-        description: "Mission accomplished! Advancing to the next level..." 
+        title: "Map Complete!", 
+        description: "Advancing to next map level..." 
       });
     }
-  }, [map, toast, setUser, remainingTargets]);
-
-  const resetGame = useCallback(() => {
-    const { width, height } = getMapSize(user.level);
+  }, [map, toast, setUser, remainingTargets]);  const resetGame = useCallback(() => {
+    setMapLevel(1);
+    localStorage.setItem('mapLevel', '1');
+    const { width, height } = getMapSize(1); // Use level 1 for reset
     generateMap(width, height);
     setSelectedCell(null);
     setActiveItem(null);
     setIsGameComplete(false);
-    // Optionally reset user items/level here if needed for a full game reset
-  }, [user.level, getMapSize, generateMap]);
-
+    
+    // Reset both levels and experience
+    setUser(prevUser => ({
+      ...prevUser,
+      level: 1,
+      mapLevel: 1,
+      experience: 0
+    }));
+  }, [getMapSize, generateMap, setUser]);
   return (
     <GameContext.Provider 
       value={{
@@ -342,10 +364,11 @@ export const GameProvider = ({ children, initialUser }: GameProviderProps) => {
         user,
         setUser,
         deployItemOnCell,
-        applyItemToCell, // Added applyItemToCell
+        applyItemToCell,
         remainingTargets,
         isGameComplete,
-        resetGame
+        resetGame,
+        mapLevel
       }}
     >
       {children}

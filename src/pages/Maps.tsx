@@ -10,7 +10,11 @@ import { Button } from "@/components/ui/button";
 import Game from '@/components/Game';
 import { Map, X } from "lucide-react";
 
+import { useGameSounds } from "@/hooks/use-game-sounds";
+import MapSounds from '@/components/MapSounds';
+
 const Maps = () => {
+  
   const [user, setUser] = useState<User | null>(null);
   const [bom, setBom] = useState<number[]>();
   const [points, setPoints] = useState<number>(0);
@@ -30,8 +34,11 @@ const Maps = () => {
   const [isMapOpen, setMapOpen] = useState(false);
   const [isMapLoading, setMapLoading] = useState(false);
 
+  
+
   useEffect(() => {
     console.log('getting user');
+    
     const user = localStorage.getItem('user');
 
     if (user) {
@@ -85,12 +92,15 @@ const Maps = () => {
   //     intervalRef.current = null;
   //   }
   // };
-
   
+
+  const { superExplosion } = useGameSounds();
+
   const handleClick = (isBom: boolean) => {
     if(isBom) {
       setPoints(0);
       handleTrigger();
+      superExplosion();
       return;
     }
 
@@ -123,13 +133,12 @@ const Maps = () => {
       // Target and level for storage are based on values from the current render cycle,
       // consistent with the user's original selected code structure.
       const storageTargetValue = target + 3;
-      const storageLevelValue = userLevel + 1;
-
-      const userToStore: User = {
+      const storageLevelValue = userLevel + 1;      const userToStore: User = {
         id: user?.id || 'guest-' + Date.now().toString(), // Provide default if user or user.id is null/undefined
         name: user?.name || 'Guest Player',             // Provide default if user or user.name is null/undefined
         experience: user?.experience || 0,              // Provide default for experience
         level: storageLevelValue,
+        mapLevel: user?.mapLevel || 1,                 // Keep existing mapLevel or default to 1
         target: storageTargetValue,
         items: updatedItems,
       };
@@ -150,7 +159,6 @@ const Maps = () => {
     }
   }
 
-
   const ResetPlay = () => {
     setPoints(0);
     setTarget(3);
@@ -160,7 +168,9 @@ const Maps = () => {
     setBom(undefined);
     setWinState(false);
 
+    // Reset both user level (command level) and map level
     localStorage.removeItem('user');
+    localStorage.removeItem('mapLevel');
     setUser(null);
   }
 
@@ -207,9 +217,7 @@ const Maps = () => {
           </div>
         </div>
       }
-
-
-
+      <MapSounds />
       <div className="h-screen flex flex-col md:flex-row items-center justify-center align-center">
         <button className='absolute top-5 right-10 text-xl py-2 px-3 z-10 bg-slate-600 rounded-sm hover:bg-slate-500 active:bg-slate-400' onClick={ResetPlay}>
           Restart

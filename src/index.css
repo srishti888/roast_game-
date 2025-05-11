@@ -164,30 +164,121 @@
   }
 
   .game-cell {
-    @apply border border-gray-400 transition-all duration-100 cursor-pointer select-none;
+    @apply border border-gray-700/50 transition-all duration-150 cursor-pointer select-none relative overflow-hidden shadow-sm;
   }
   
   .game-cell:hover {
-    @apply transform scale-105 z-10;
+    @apply transform scale-105 z-10 shadow-lg;
   }
   
   .game-cell.selected {
-    @apply ring-2 ring-yellow-400 z-20;
+    @apply ring-2 ring-yellow-400/70 z-20 shadow-[0_0_10px_rgba(250,204,21,0.5)];
   }
   
   .game-cell.grass {
-    @apply bg-[hsl(var(--cell-grass))];
+    @apply bg-gradient-to-br from-[hsl(var(--cell-grass))] to-[hsl(var(--cell-grass)/_0.8)];
+  }
+  
+  .game-cell.grass::after {
+    content: "";
+    @apply absolute inset-0 opacity-40;
+    background-image: var(--grass-pattern);
   }
   
   .game-cell.water {
-    @apply bg-[hsl(var(--cell-water))];
+    @apply bg-gradient-to-br from-[hsl(var(--cell-water))] to-[hsl(var(--cell-water)/_0.7)];
+  }
+  
+  .game-cell.water::after {
+    content: "";
+    @apply absolute inset-0 opacity-40;
+    background-image: var(--water-pattern);
+    animation: water-move 3s infinite linear;
   }
   
   .game-cell.wall {
-    @apply bg-[hsl(var(--cell-wall))];
+    @apply bg-gradient-to-br from-[hsl(var(--cell-wall))] to-[hsl(var(--cell-wall)/_0.8)];
+  }
+  
+  .game-cell.wall::after {
+    content: "";
+    @apply absolute inset-0 opacity-60;
+    background-image: var(--wall-pattern);
   }
   
   .game-cell.path {
-    @apply bg-[hsl(var(--cell-path))];
+    @apply bg-gradient-to-br from-[hsl(var(--cell-path))] to-[hsl(var(--cell-path)/_0.8)];
   }
+  
+  .game-cell.path::after {
+    content: "";
+    @apply absolute inset-0 opacity-40;
+    background-image: var(--path-pattern);
+  }
+  
+  /* New cell types */
+  .game-cell.base {
+    @apply relative bg-gradient-to-br from-red-800 to-red-900;
+  }
+  
+  .game-cell.base::after {
+    content: "";
+    @apply absolute inset-0 opacity-80;
+    background-image: var(--base-pattern);
+    animation: pulse 2s infinite ease-in-out;
+  }
+  
+  .game-cell.destroyed {
+    @apply bg-gradient-to-br from-gray-700 to-gray-800 relative;
+  }
+  
+  .game-cell.destroyed::after {
+    content: "";
+    @apply absolute inset-0 opacity-70;
+    background-image: var(--destroyed-pattern);
+  }
+  
+  /* Animation for map generation */
+  .map-fade-in {
+    @apply animate-fade-in;
+  }
+  
+  /* Animation for item usage */
+  .item-effect {
+    @apply animate-pulse;
+  }
+  
+  /* Animation for celebration */
+  @keyframes celebration {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+  
+  .celebration {
+    animation: celebration 1s infinite;
+  }
+  
+  @keyframes water-move {
+    0% { background-position: 0 0; }
+    100% { background-position: 20px 0; }
+  }
+}
+
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
 }

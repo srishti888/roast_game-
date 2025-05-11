@@ -2,6 +2,8 @@ import React, { useEffect } from "react";
 import { useGameContext, Cell } from "@/contexts/GameContext";
 import GameCell from "./GameCell";
 import { Target, Shield, Crosshair, MapPin, Star, Sparkles } from "lucide-react";
+import GameSounds from "./GameSounds";
+import { useGameSounds } from "@/hooks/use-game-sounds";
 
 interface GameMapProps {
   width?: number;
@@ -10,39 +12,61 @@ interface GameMapProps {
 }
 
 const GameMap = ({ 
-  width = 15, 
-  height = 10,
-  cellSize = 40
-}: GameMapProps) => {
-  const { 
+  width = 10, 
+  height = 7,
+  cellSize = 52
+}: GameMapProps) => {  const { 
     map, 
     generateMap, 
     selectedCell, 
     activeItem, 
     deployItemOnCell,
     remainingTargets,
-    isGameComplete
-  } = useGameContext();    // Generate the map only on mount or when map dimensions change
+    isGameComplete,
+    mapLevel,
+    user
+  } = useGameContext();
+
+  const sounds = useGameSounds();
+  // Play intro sound and generate map
   useEffect(() => {
-    // Only generate new map if there isn't one already
     if (!map || map.length === 0 || map[0].length !== width || map.length !== height) {
       generateMap(width, height);
     }
   }, [width, height, generateMap, map]);
+  
+  // Play intro sound only once when component mounts
+  useEffect(() => {
+    sounds.playTacticalNuke();
+    // Empty dependency array ensures this only runs once on mount
+  }, []);
+  // Handle cell click with sound effects
   const handleCellClick = React.useCallback((cell: Cell) => {
     if (activeItem) {
+      if (cell.type === 'base') {
+        sounds.superExplosion();
+      } else {
+        sounds.playAlarmDanger();
+      }
       deployItemOnCell(activeItem, cell);
     }
-  }, [activeItem, deployItemOnCell]);
-  
+  }, [activeItem, deployItemOnCell, sounds]);
+
+  // Play victory sound when map is cleared
+  useEffect(() => {
+    if (isGameComplete) {
+      sounds.playWarioWon();
+    }
+  }, [isGameComplete, sounds]);
+
   return (
     <div className="flex flex-col items-center w-full max-w-full">
-      <div className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6 rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.7)] w-full border-2 border-gray-700/50 animate-fade-in">
+      <GameSounds />      <div className="relative p-6 rounded-xl w-full border-2 animate-fade-in bg-gray-950/50">
         {/* Map glow effect */}
-        <div className="absolute inset-0 bg-red-500/5 rounded-xl blur-xl"></div>
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-red-900/30 via-yellow-900/20 to-red-900/30 rounded-xl blur-md opacity-70"></div>
+        <div className="absolute inset-0 rounded-xl blur-xl"></div>
+        <div className="absolute -inset-0.5 bg-gray-900 rounded-xl blur-md opacity-70"></div>
         
-        <div className="relative flex items-center justify-center">
+        <div className="relative flex items-center justify-center min-h-[440px]">
           {/* Top radar ping animation */}
           <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-24 h-6 flex items-center justify-center">
             <span className="absolute w-3 h-3 bg-red-500 rounded-full animate-ping opacity-75"></span>
@@ -52,22 +76,29 @@ const GameMap = ({
           {/* HUD elements */}
           <div className="absolute -top-1 -right-1 bg-red-950/90 px-3 py-1 text-xs text-red-300 rounded-md border border-red-800/70 flex items-center gap-1.5 shadow-lg">
             <Crosshair className="w-3.5 h-3.5" />
-            <span className="font-mono tracking-wider">TACTICAL VIEW</span>
+            <span className="font-mono tracking-wider">
+              MAP LVL {mapLevel} • CMD LVL {user?.level || 1}
+            </span>
           </div>
-          
-          <div className="absolute -top-1 -left-1 bg-gray-950/90 px-3 py-1 text-xs text-gray-300 rounded-md border border-gray-700/70 flex items-center gap-1.5 shadow-lg">
+            <div className="absolute -top-1 -left-1 bg-gray-950/90 px-3 py-1 text-xs text-gray-300 rounded-md border border-gray-700/70 flex items-center gap-1.5 shadow-lg">
             <MapPin className="w-3.5 h-3.5 text-red-500" />
-            <span className="font-mono tracking-wider">{width}x{height}</span>
+            <span className="font-mono tracking-wider flex gap-2">
+              <span>{width}x{height}</span>
+              <span className="text-red-400">Map Level: {mapLevel}</span>
+            </span>
           </div>
-          
-          {/* Grid border glow */}
+            {/* Grid border glow */}
           <div className="absolute inset-0 border-2 border-red-800/10 rounded-lg blur-sm"></div>
           
           {/* Actual grid */}
-          <div className="grid gap-0.5 mx-auto relative z-10" style={{ 
-            gridTemplateColumns: `repeat(${width}, ${cellSize}px)`,
-            gridTemplateRows: `repeat(${height}, ${cellSize}px)`,
-            boxShadow: "0 0 40px rgba(200, 0, 0, 0.1)"
+          <div 
+            className="grid gap-0.5 mx-auto relative z-10 mt-16" 
+            style={{ 
+              gridTemplateColumns: `repeat(${width}, ${cellSize}px)`,
+              gridTemplateRows: `repeat(${height}, ${cellSize}px)`,
+              boxShadow: "0 0 40px rgba(200, 0, 0, 0.1)",
+              maxHeight: `calc(${height} * ${cellSize}px + ${height - 1} * 0.125rem)`,
+              maxWidth: `calc(${width} * ${cellSize}px + ${width - 1} * 0.125rem)`
           }}>
             {map.map((row, y) => 
               row.map((cell, x) => (

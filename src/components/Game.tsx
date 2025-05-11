@@ -20,6 +20,7 @@ const defaultUser = {
   id: "user-1",
   name: "Player 1",
   level: 1,
+  mapLevel: 1,
   experience: 0,
   target: 10,
   items: defaultItems

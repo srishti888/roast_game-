@@ -17,7 +17,8 @@ export type Item = {
 export type User = {
   id: string;
   name: string;
-  level: number;
+  level: number;      // This is now the command/user level
+  mapLevel: number;   // Added mapLevel property
   experience: number;
   target: number;
   items: Item[];
